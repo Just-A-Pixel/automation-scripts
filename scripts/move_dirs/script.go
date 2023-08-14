@@ -16,12 +16,13 @@ var (
 )
 
 func main() {
+	getArgs()
 	// check for dest
 	checkDir(dest)
 
-	files, _ := filepath.Glob(src)
+	checkDir(src)
 
-	getArgs()
+	files, _ := filepath.Glob(fmt.Sprintf("%s/*", src))
 
 	listOfAllowedExtensions := map[string]map[string]bool{
 		"documents": {
@@ -43,8 +44,9 @@ func main() {
 		for key, val := range listOfAllowedExtensions {
 			if _, ok := val[extension]; ok {
 				checkDir(fmt.Sprintf("%s/%s", dest, key))
+
 				// Now copy all the files
-				err := os.Rename(fmt.Sprintf("%s/%s", src, file), fmt.Sprintf("%s/%s/%s", dest, key, file))
+				err := os.Rename(fmt.Sprintf("%s/%s", src, filepath.Base(file)), fmt.Sprintf("%s/%s/%s", dest, key, filepath.Base(file)))
 				if err != nil {
 					log.Println("Error moving: ", err)
 				}
@@ -88,11 +90,16 @@ func validateArg(arg string) string {
 }
 
 func checkDir(dir string) {
-	if _, err := os.Stat(dir); err != nil {
-		return
-	} else {
-		if errors.Is(err, os.ErrNotExist) {
-			os.MkdirAll(dir, 0644)
+	fs, err := os.Stat(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			os.MkdirAll(dir, os.ModePerm)
+			return
 		}
+		panic(err)
 	}
+	if fs.Mode() != os.ModePerm {
+		os.Chmod(dir, os.ModePerm)
+	}
+	log.Println(fs.Size())
 }
