@@ -21,6 +21,8 @@ func main() {
 
 	files, _ := filepath.Glob(src)
 
+	getArgs()
+
 	listOfAllowedExtensions := map[string]map[string]bool{
 		"documents": {
 			".pdf":  true,
@@ -59,7 +61,7 @@ Format:
   - dest=*
   - src=*
 */
-func getArgs() map[string]string {
+func getArgs() {
 	args := os.Args
 	if len(args) == 0 {
 		panic(fmt.Errorf("args not supplied"))
